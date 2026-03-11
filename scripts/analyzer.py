@@ -59,8 +59,8 @@ def analyze_log(api_key: str, log_content: str):
 You must return your response STRICTLY as a JSON object with no markdown formatting around it.
 The JSON must have the following keys:
 - "root_cause": A short string explaining what broke.
-- "file_to_fix": The filepath of the file that needs changing.
-- "diff_patch": A valid unified diff (patch) that fixes the issue. If you cannot provide a diff, leave it empty.
+- "file_to_fix": The filepath of the file that needs changing relative to the repository root. CRITICAL: Do NOT suggest fixing temporary runner scripts (e.g., files in /home/runner/work/_temp/). If the error originates from a run step in a GitHub Actions workflow, the file to fix is the workflow YAML file itself (e.g., .github/workflows/test-error.yml).
+- "diff_patch": A valid unified diff (patch) that fixes the issue in the target source file. If you cannot provide a diff, leave it empty.
 
 Log content:
 {log_content}
