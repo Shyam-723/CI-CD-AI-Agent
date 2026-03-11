@@ -11,38 +11,8 @@ inputs:
     required: true
 
 runs:
-  using: "composite"
-  steps:
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
-
-    - name: Install Dependencies
-      shell: bash
-      run: |
-        pip install -r ${{ github.action_path }}/requirements.txt
-
-    - name: Phase A - Log Miner
-      id: mine_logs
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github_token }}
-      run: |
-        bash ${{ github.action_path }}/scripts/miner.sh
-
-    - name: Phase B - Agent Brain
-      id: agent_analysis
-      shell: bash
-      env:
-        GROQ_API_KEY: ${{ inputs.groq_api_key }}
-      run: |
-        python ${{ github.action_path }}/scripts/analyzer.py
-
-    - name: Phase C - PR Creator
-      id: create_pr
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github_token }}
-      run: |
-        bash ${{ github.action_path }}/scripts/pr_creator.sh
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    GROQ_API_KEY: ${{ inputs.groq_api_key }}
+    GITHUB_TOKEN: ${{ inputs.github_token }}
