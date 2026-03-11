@@ -1,2 +1,2 @@
-groq==0.8.0
-tiktoken==0.7.0
+groq
+tiktoken
