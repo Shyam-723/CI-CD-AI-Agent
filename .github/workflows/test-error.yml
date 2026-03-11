@@ -18,10 +18,7 @@ jobs:
 
       - name: A step that intentionally fails
         run: |
-          echo "This script is going to fail on purpose."
-          # Calling a command that doesn't exist
-          non_existent_command_12345
-          exit 1
+          python broken_script.py
 
   heal:
     needs: [build_and_test]
