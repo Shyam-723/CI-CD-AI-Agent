@@ -68,7 +68,7 @@ Log content:
 
     print("Sending request to Groq...")
     response = client.chat.completions.create(
-        model="llama3-70b-8192",
+        model="llama3-8b-8192",
         messages=[
             {"role": "system", "content": "You are an expert software engineer and debugger."},
             {"role": "user", "content": prompt}
