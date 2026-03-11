@@ -13,35 +13,54 @@ fi
 # Extract values using Python since jq might not be available on all runners
 ROOT_CAUSE=$(python3 -c "import json; print(json.load(open('$JSON_FILE'))['root_cause'])")
 FILE_TO_FIX=$(python3 -c "import json; print(json.load(open('$JSON_FILE'))['file_to_fix'])")
-DIFF_PATCH=$(python3 -c "import json; print(json.load(open('$JSON_FILE'))['diff_patch'])")
 
 echo "Root cause identified: $ROOT_CAUSE"
 echo "Target file: $FILE_TO_FIX"
 
-if [ -z "$DIFF_PATCH" ]; then
-    echo "Warning: No diff patch provided by AI. Cannot create a PR automatically."
-    exit 0
-fi
+# Run a python script to perform the search and replace
+cat << 'EOF' > string_replace.py
+import json
+import sys
 
-# Save the diff to a patch file
-PATCH_FILE="fix.patch"
-echo "$DIFF_PATCH" > "$PATCH_FILE"
+with open("analysis_result.json", "r") as f:
+    data = json.load(f)
+
+file_to_fix = data.get("file_to_fix")
+search_content = data.get("search_content", "")
+replace_content = data.get("replace_content", "")
+
+if not search_content:
+    print("Warning: No search_content provided by AI. Cannot create a PR automatically.")
+    sys.exit(0)
+
+try:
+    with open(file_to_fix, "r") as f:
+        content = f.read()
+
+    if search_content not in content:
+        print(f"Failed to apply patch. The AI suggested search string was not found in {file_to_fix}.")
+        print(f"Search string:\n{search_content}")
+        sys.exit(1)
+
+    new_content = content.replace(search_content, replace_content)
+
+    with open(file_to_fix, "w") as f:
+        f.write(new_content)
+    
+    print("Code replaced successfully!")
+except Exception as e:
+    print(f"Error modifying file: {e}")
+    sys.exit(1)
+EOF
 
 # Prepare branch
 BRANCH_NAME="fix/build-${GITHUB_RUN_ID}"
 echo "Checking out new branch: $BRANCH_NAME"
 git checkout -b "$BRANCH_NAME" || git checkout "$BRANCH_NAME"
 
-# Apply the patch
-echo "Applying patch..."
-if git apply "$PATCH_FILE"; then
-    echo "Patch applied successfully!"
-else
-    echo "Failed to apply patch. The AI suggested an invalid or conflicting diff."
-    # Output the patch for debugging
-    cat "$PATCH_FILE"
-    exit 1
-fi
+# Apply the replaced content
+echo "Applying code changes..."
+python3 string_replace.py
 
 # Commit and Push
 git config user.name "github-actions[bot]"

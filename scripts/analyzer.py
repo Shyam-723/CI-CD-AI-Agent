@@ -60,7 +60,8 @@ You must return your response STRICTLY as a JSON object with no markdown formatt
 The JSON must have the following keys:
 - "root_cause": A short string explaining what broke.
 - "file_to_fix": The filepath of the file that needs changing.
-- "diff_patch": A valid unified diff (patch) that fixes the issue. If you cannot provide a diff, leave it empty.
+- "search_content": The exact string in the file to be replaced. Must be an exact match of existing lines.
+- "replace_content": The new string that should replace the search_content.
 
 CRITICAL INSTRUCTION:
 The log might contain references to temporary GitHub Actions runner scripts (e.g., /home/runner/work/_temp/...sh). 
