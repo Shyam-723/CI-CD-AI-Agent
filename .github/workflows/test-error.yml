@@ -1,0 +1,30 @@
+name: Intentional Error Test
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: A step that intentionally fails
+        run: |
+          echo "This script is going to fail on purpose."
+          # Calling a command that doesn't exist
+          non_existent_command_12345
+          exit 1
+
+      - name: Run CI Healer Action
+        if: failure()
+        uses: ./ # This points to the action.yml in the root of the current repo
+        with:
+          groq_api_key: ${{ secrets.GROQ_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
