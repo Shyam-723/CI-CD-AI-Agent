@@ -91,7 +91,7 @@ git add "$RESOLVED_FILE"
 git commit -m "🤖 AI suggested fix for build failure"
 
 echo "Pushing changes to origin..."
-git push origin "$BRANCH_NAME"
+git push -f origin "$BRANCH_NAME"
 
 # Create PR via GH CLI
 echo "Creating Pull Request..."
