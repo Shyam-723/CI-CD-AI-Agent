@@ -51,7 +51,7 @@ def prune_log(filepath: str) -> str:
     
     return pruned_text
 
-def analyze_log(api_key: str, log_content: str):
+def analyze_log(api_key: str, log_content: str, workspace_files: str):
     """Calls Groq API to analyze the structured log."""
     client = Groq(api_key=api_key)
     
@@ -59,8 +59,16 @@ def analyze_log(api_key: str, log_content: str):
 You must return your response STRICTLY as a JSON object with no markdown formatting around it.
 The JSON must have the following keys:
 - "root_cause": A short string explaining what broke.
-- "file_to_fix": The filepath of the file that needs changing relative to the repository root. CRITICAL: Do NOT suggest fixing temporary runner scripts (e.g., files in /home/runner/work/_temp/). If the error originates from a run step in a GitHub Actions workflow, the file to fix is the workflow YAML file itself (e.g., .github/workflows/test-error.yml).
-- "diff_patch": A valid unified diff (patch) that fixes the issue in the target source file. If you cannot provide a diff, leave it empty.
+- "file_to_fix": The filepath of the file that needs changing.
+- "diff_patch": A valid unified diff (patch) that fixes the issue. If you cannot provide a diff, leave it empty.
+
+CRITICAL INSTRUCTION:
+The log might contain references to temporary GitHub Actions runner scripts (e.g., /home/runner/work/_temp/...sh). 
+DO NOT suggest fixes for these temporary files, as they are non-existent in the repository. 
+If the error happens in a temporary script, the actual fix must be applied to the `.github/workflows/*.yml` file that generated it, or a script tracked in the repository.
+
+Here is a list of all tracked files in the repository to help you identify the correct `file_to_fix`:
+{workspace_files}
 
 Log content:
 {log_content}
@@ -101,7 +109,15 @@ def main():
     tokens = count_tokens(pruned_log)
     print(f"Pruned log size: {tokens} tokens.")
 
-    result = analyze_log(api_key, pruned_log)
+    print("Gathering workspace context...")
+    # Get a tree or list of files to help the LLM know the real structure
+    try:
+        workspace_files = os.popen('find . -type f -not -path "*/\.git/*" | sort').read()
+    except Exception as e:
+        print(f"Warning: Could not list workspace files: {e}")
+        workspace_files = ""
+
+    result = analyze_log(api_key, pruned_log, workspace_files)
 
     print("Analysis complete. Saving result...")
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
