@@ -21,6 +21,7 @@ echo "Target file: $FILE_TO_FIX"
 cat << 'EOF' > string_replace.py
 import json
 import sys
+import os
 
 with open("analysis_result.json", "r") as f:
     data = json.load(f)
@@ -28,6 +29,19 @@ with open("analysis_result.json", "r") as f:
 file_to_fix = data.get("file_to_fix")
 search_content = data.get("search_content", "")
 replace_content = data.get("replace_content", "")
+
+# Sanitize the filepath (LLMs sometimes add leading ./ or the repo name)
+if file_to_fix.startswith("./"):
+    file_to_fix = file_to_fix[2:]
+if file_to_fix.startswith("CI-CD-AI-Agent/"):
+    file_to_fix = file_to_fix.replace("CI-CD-AI-Agent/", "", 1)
+if not os.path.exists(file_to_fix):
+    # Try to find it dynamically by basename if the long path is wrong
+    basename = os.path.basename(file_to_fix)
+    for root, dirs, files in os.walk("."):
+        if basename in files:
+            file_to_fix = os.path.join(root, basename)
+            break
 
 if not search_content:
     print("Warning: No search_content provided by AI. Cannot create a PR automatically.")
