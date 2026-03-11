@@ -61,6 +61,10 @@ try:
     with open(file_to_fix, "w") as f:
         f.write(new_content)
     
+    # Save the strictly resolved path for the bash script to use
+    with open("resolved_file.txt", "w") as f:
+        f.write(file_to_fix)
+
     print("Code replaced successfully!")
 except Exception as e:
     print(f"Error modifying file: {e}")
@@ -76,11 +80,14 @@ git checkout -b "$BRANCH_NAME" || git checkout "$BRANCH_NAME"
 echo "Applying code changes..."
 python3 string_replace.py
 
+# Read the resolved file path
+RESOLVED_FILE=$(cat resolved_file.txt)
+
 # Commit and Push
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 
-git add "$FILE_TO_FIX"
+git add "$RESOLVED_FILE"
 git commit -m "🤖 AI suggested fix for build failure"
 
 echo "Pushing changes to origin..."
