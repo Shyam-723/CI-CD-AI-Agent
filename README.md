@@ -1,5 +1,4 @@
-# CI Healer Action 🤖🏥
-
+# CI Healer Action 
 The CI Healer Action is an intelligent GitHub Actions agent that automatically detects build failures, extracts the relevant error logs, analyzes them using a Llama 3 LLM (via Groq), and opens a Pull Request with the correct fix!
 
 This repository provides the **Dockerized version** of the action, meaning it runs in a clean, isolated environment with all required dependencies pre-installed. It works beautifully on both GitHub-hosted and self-hosted runners.
@@ -12,7 +11,7 @@ This repository provides the **Dockerized version** of the action, meaning it ru
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 To use the Dockerized CI Healer Action in your own repository, follow these steps:
 
